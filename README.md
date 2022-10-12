@@ -12,7 +12,8 @@ List of Folders
 # Tutorial
 
 This file shows how to run each of the codes mentioned in this Readme file along with governing equations. 
-[tutorial](tutorial.ipynb)
+
+[tutorial](https://colab.research.google.com/github/nasa/shocktube/blob/main/tutorial.ipynb)
 
 
 # Contributors
