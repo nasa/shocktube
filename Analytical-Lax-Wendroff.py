@@ -12,7 +12,7 @@
 
 import os, sys
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pyplot
 
 from numpy import *
 from matplotlib import rc
@@ -20,7 +20,7 @@ from matplotlib import rc
 rc('font', family='serif')
 rc('lines', linewidth=1.5)
 rc('font', size=14)
-#plt.rc('legend',**{'fontsize':11})
+#pyplot.rc('legend',**{'fontsize':11})
 
 ######################################################################
 #             Solving 1-D Euler system of equations
@@ -54,202 +54,205 @@ rc('font', size=14)
 ######################################################################
 
 
+#Constants
+COURANT_NUM    = 0.50               # Courant Number - CFL
+IC = 1 # 6 IC cases are available
+
 # Parameters
-CFL    = 0.50               # Courant Number
-gamma  = 1.4                # Ratio of specific heats
-ncells = 400                # Number of cells
-x_ini =0.; x_fin = 1.       # Limits of computational domain
-dx = (x_fin-x_ini)/ncells   # Step size
-nx = ncells+1               # Number of points
-x = np.linspace(x_ini+dx/2.,x_fin,nx) # Mesh
+specificHeatsRatio  = 1.4                # Ratio of specific heats - gamma
+numCells = 400                # Number of cells - ncells
+x_lower =0.; x_upper = 1.       # Limits of computational domain - start and final bounds
+step = (x_upper-x_lower)/numCells   # Step size - dx
+pointCount = numCells+1               # Number of points - nx
+x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh
 
 # Build IC
-r0 = zeros(nx)
-u0 = zeros(nx)
-p0 = zeros(nx)
-halfcells = int(ncells/2)
+r_vector = np.zeros(pointCount)
+u_vector = np.zeros(pointCount)
+p_vector = np.zeros(pointCount)
+splitCells = int(numCells/2)
 
-IC = 1 # 6 IC cases are available
 if IC == 1:
     print ("Configuration 1, Sod's Problem")
-    p0[:halfcells] = 1.0  ; p0[halfcells:] = 0.1;
-    u0[:halfcells] = 0.0  ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 1.0  ; r0[halfcells:] = 0.125;
-    tEnd = 0.20;
+    p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
+    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
+    timeEnd = 0.20; #tEnd
 elif IC== 2:
     print ("Configuration 2, Left Expansion and right strong shock")
-    p0[:halfcells] = 1000.; p0[halfcells:] = 0.1;
-    u0[:halfcells] = 0.0  ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 3.0  ; r0[halfcells:] = 0.2;
-    tEnd = 0.01;
+    p_vector[:splitCells] = 1000.; p_vector[splitCells:] = 0.1
+    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 3.0  ; r_vector[splitCells:] = 0.2
+    timeEnd = 0.01
 elif IC == 3:
     print ("Configuration 3, Right Expansion and left strong shock")
-    p0[:halfcells] = 7.   ; p0[halfcells:] = 10.;
-    u0[:halfcells] = 0.0  ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 1.0  ; r0[halfcells:] = 1.0;
-    tEnd = 0.10;
+    p_vector[:splitCells] = 7.   ; p_vector[splitCells:] = 10.
+    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 1.0
+    timeEnd = 0.10
 elif IC == 4:
     print ("Configuration 4, Shocktube problem of G.A. Sod, JCP 27:1, 1978")
-    p0[:halfcells] = 1.0  ; p0[halfcells:] = 0.1;
-    u0[:halfcells] = 0.75 ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 1.0  ; r0[halfcells:] = 0.125;
-    tEnd = 0.17;
+    p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
+    u_vector[:splitCells] = 0.75 ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
+    timeEnd = 0.17
 elif IC == 5:
     print ("Configuration 5, Lax test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
-    p0[:halfcells] = 3.528; p0[halfcells:] = 0.571;
-    u0[:halfcells] = 0.698; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 0.445; r0[halfcells:] = 0.5;
-    tEnd = 0.15;
+    p_vector[:splitCells] = 3.528; p_vector[splitCells:] = 0.571
+    u_vector[:splitCells] = 0.698; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 0.445; r_vector[splitCells:] = 0.5
+    timeEnd = 0.15
 elif IC == 6:
     print ("Configuration 6, Mach = 3 test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
-    p0[:halfcells] = 10.33; p0[halfcells:] = 1.0;
-    u0[:halfcells] = 0.92 ; u0[halfcells:] = 3.55;
-    r0[:halfcells] = 3.857; r0[halfcells:] = 1.0;
-    tEnd = 0.09;
+    p_vector[:splitCells] = 10.33; p_vector[splitCells:] = 1.0
+    u_vector[:splitCells] = 0.92 ; u_vector[splitCells:] = 3.55
+    r_vector[:splitCells] = 3.857; r_vector[splitCells:] = 1.0
+    timeEnd = 0.09
 
-E0 = p0/((gamma-1.)*r0)+0.5*u0**2 # Total Energy density
-a0 = sqrt(gamma*p0/r0)            # Speed of sound
-q  = np.array([r0,r0*u0,r0*E0])   # Vector of conserved variables
+E0 = p_vector/((specificHeatsRatio-1.)*r_vector)+0.5*u_vector**2 # Total Energy density - E0
+a = sqrt(specificHeatsRatio*p_vector/r_vector)            # Speed of sound
+q  = np.array([r_vector,r_vector*u_vector,r_vector*E0])   # Vector of conserved variables
 
 if (False):
-    fig = plt.subplots()
-    ax1 = plt.subplot(4, 1, 1)
-    #plt.title('Lax-Wendroff scheme')
-    plt.plot(x, r0, 'k-')
-    plt.ylabel('$rho$',fontsize=18)
-    plt.tick_params(axis='x',bottom=False,labelbottom=False)
-    plt.grid(True)
+    fig = pyplot.subplots()
+    ax1 = pyplot.subplot(4, 1, 1)
+    #pyplot.title('Lax-Wendroff scheme')
+    pyplot.plot(x_domain, r_vector, 'k-')
+    pyplot.ylabel('$rho$',fontsize=18)
+    pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+    pyplot.grid(True)
     
-    ax2 = plt.subplot(4, 1, 2)
-    plt.plot(x, u0, 'r-')
-    plt.ylabel('$U$',fontsize=18)
-    plt.tick_params(axis='x',bottom=False,labelbottom=False)
-    plt.grid(True)
+    ax2 = pyplot.subplot(4, 1, 2)
+    pyplot.plot(x_domain, u_vector, 'r-')
+    pyplot.ylabel('$U$',fontsize=18)
+    pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+    pyplot.grid(True)
 
-    ax3 = plt.subplot(4, 1, 3)
-    plt.plot(x, p0, 'b-')
-    plt.ylabel('$P$',fontsize=18)
-    plt.tick_params(axis='x',bottom=False,labelbottom=False)
-    plt.grid(True)
+    ax3 = pyplot.subplot(4, 1, 3)
+    pyplot.plot(x_domain, p0, 'b-')
+    pyplot.ylabel('$P$',fontsize=18)
+    pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+    pyplot.grid(True)
     
-    ax4 = plt.subplot(4, 1, 4)
-    plt.plot(x, E0, 'g-')
-    plt.ylabel('$E$',fontsize=18)
-    plt.grid(True)
-    plt.xlim(x_ini,x_fin)
-    plt.xlabel('x',fontsize=18)
-    plt.subplots_adjust(left=0.2)
-    plt.subplots_adjust(bottom=0.15)
-    plt.subplots_adjust(top=0.95)
+    ax4 = pyplot.subplot(4, 1, 4)
+    pyplot.plot(x_domain, E0, 'g-')
+    pyplot.ylabel('$E$',fontsize=18)
+    pyplot.grid(True)
+    pyplot.xlim(x_lower,x_upper)
+    pyplot.xlabel('x',fontsize=18)
+    pyplot.subplots_adjust(left=0.2)
+    pyplot.subplots_adjust(bottom=0.15)
+    pyplot.subplots_adjust(top=0.95)
     
-    plt.show()
+    pyplot.show()
 
 # Solver loop
-t  = 0
-it = 0
-a  = a0
-dt=CFL*dx/max(abs(u0)+a0)         # Using the system's largest eigenvalue
+tCur  = 0 #t
+itCount = 0
+deltaTime=COURANT_NUM*step/max(abs(u_vector)+a)  # Using the system's largest eigenvalue - dt
 
-while t < tEnd:
+while tCur < timeEnd:
     
     # I. Predictor step
     # =================
-    q0 = q.copy();
+    q0 = q.copy()
     
     # Primary variables
-    r=q0[0];
-    u=q0[1]/r;
-    E=q0[2]/r;
-    p=(gamma-1.)*r*(E-0.5*u**2);
+    r=q0[0]
+    u=q0[1]/r
+    E=q0[2]/r
+    p=(specificHeatsRatio-1.)*r*(E-0.5*u**2)
     
     # Flux vector of conserved properties
     F0 = np.array(r*u)
     F1 = np.array(r*u**2+p)
     F2 = np.array(u*(r*E+p))
-    flux=np.array([ F0, F1, F2 ]);
+    flux=np.array([ F0, F1, F2 ])
     
-    qm  = np.roll(q0, 1);
-    qp  = np.roll(q0,-1);
-    fm  = np.roll(flux, 1);
-    fp  = np.roll(flux,-1);
+    qm  = np.roll(q0, 1)
+    qp  = np.roll(q0,-1)
+    fm  = np.roll(flux, 1)
+    fp  = np.roll(flux,-1)
 
-    qpHalf = (qp+q0)/2. - dt/(2.*dx)*(fp-flux)
-    qmHalf = (qm+q0)/2. - dt/(2.*dx)*(-fm+flux)
+    qpHalf = (qp+q0)/2. - deltaTime/(2.*step)*(fp-flux)
+    qmHalf = (qm+q0)/2. - deltaTime/(2.*step)*(-fm+flux)
     
     # II. Corrector step
     # ==================
         
-    r=qpHalf[0];
-    u=qpHalf[1]/r;
-    E=qpHalf[2]/r;
-    p=(gamma-1.)*r*(E-0.5*u**2);
-    F0 = np.array(r*u);
+    r=qpHalf[0]
+    u=qpHalf[1]/r
+    E=qpHalf[2]/r
+    p=(specificHeatsRatio-1.)*r*(E-0.5*u**2)
+    F0 = np.array(r*u)
     F1 = np.array(r*u**2+p)
     F2 = np.array(u*(r*E+p))
-    FqpHalf=np.array([ F0, F1, F2 ]);
+    FqpHalf=np.array([ F0, F1, F2 ])
     
-    r=qmHalf[0];
-    u=qmHalf[1]/r;
-    E=qmHalf[2]/r;
-    p=(gamma-1.)*r*(E-0.5*u**2);
-    F0 = np.array(r*u);
+    r=qmHalf[0]
+    u=qmHalf[1]/r
+    E=qmHalf[2]/r
+    p=(specificHeatsRatio-1.)*r*(E-0.5*u**2)
+    F0 = np.array(r*u)
     F1 = np.array(r*u**2+p)
     F2 = np.array(u*(r*E+p))
-    FqmHalf=np.array([ F0, F1, F2 ]);
+    FqmHalf=np.array([ F0, F1, F2 ])
     
     dF = FqpHalf - FqmHalf
     
-    q = q0-dt/dx*dF;
-    q[:,0]=q0[:,0]; q[:,-1]=q0[:,-1]; # BCs
+    q = q0-deltaTime/step*dF
+    q[:,0]=q0[:,0]
+    q[:,-1]=q0[:,-1] # BCs
    
   
     # Compute primary variables
-    rho=q[0];
-    u=q[1]/rho;
-    E=q[2]/rho;
-    p=(gamma-1.)*rho*(E-0.5*u**2);
-    a=sqrt(gamma*p/rho);
+    rho=q[0]
+    u=q[1]/rho
+    E=q[2]/rho
+    p=(specificHeatsRatio-1.)*rho*(E-0.5*u**2)
+    a=sqrt(specificHeatsRatio*p/rho)
     if min(p)<0: print ('negative pressure found!')
     
     # Update/correct time step
-    dt=CFL*dx/max(abs(u)+a);
+    deltaTime=COURANT_NUM*step/max(abs(u)+a)
     
     # Update time and iteration counter
-    t=t+dt; it=it+1;
+    tCur=tCur+deltaTime
+    itCount+=1
     
     # Plot solution
-    if it%2 == 0:
-        print (it)
-        fig,axes = plt.subplots(nrows=4, ncols=1)
-        plt.subplot(4, 1, 1)
-        #plt.title('Lax-Wendroff scheme')
-        plt.plot(x, rho, 'k-')
-        plt.ylabel('$rho$',fontsize=16)
-        plt.tick_params(axis='x',bottom=False,labelbottom=False)
-        plt.grid(True)
+    if itCount%2 == 0:
+        print (itCount)
+        fig,axes = pyplot.subplots(nrows=4, ncols=1)
+        pyplot.subplot(4, 1, 1)
+        #pyplot.title('Lax-Wendroff scheme')
+        pyplot.plot(x_domain, rho, 'k-')
+        pyplot.ylabel('$rho$',fontsize=16)
+        pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+        pyplot.grid(True)
 
-        plt.subplot(4, 1, 2)
-        plt.plot(x, u, 'r-')
-        plt.ylabel('$U$',fontsize=16)
-        plt.tick_params(axis='x',bottom=False,labelbottom=False)
-        plt.grid(True)
+        pyplot.subplot(4, 1, 2)
+        pyplot.plot(x_domain, u, 'r-')
+        pyplot.ylabel('$U$',fontsize=16)
+        pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+        pyplot.grid(True)
 
-        plt.subplot(4, 1, 3)
-        plt.plot(x, p, 'b-')
-        plt.ylabel('$p$',fontsize=16)
-        plt.tick_params(axis='x',bottom=False,labelbottom=False)
-        plt.grid(True)
+        pyplot.subplot(4, 1, 3)
+        pyplot.plot(x_domain, p, 'b-')
+        pyplot.ylabel('$p$',fontsize=16)
+        pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+        pyplot.grid(True)
     
-        plt.subplot(4, 1, 4)
-        plt.plot(x, E, 'g-')
-        plt.ylabel('$E$',fontsize=16)
-        plt.grid(True)
-        plt.xlim(x_ini,x_fin)
-        plt.xlabel('x',fontsize=16)
-        plt.subplots_adjust(left=0.2)
-        plt.subplots_adjust(bottom=0.15)
-        plt.subplots_adjust(top=0.95)
-        #  plt.show()
-        fig.savefig("analytical_plots/fig_Sod_LW_it"+str(it)+".png", dpi=300)
+        pyplot.subplot(4, 1, 4)
+        pyplot.plot(x_domain, E, 'g-')
+        pyplot.ylabel('$E$',fontsize=16)
+        pyplot.grid(True)
+        pyplot.xlim(x_lower,x_upper)
+        pyplot.xlabel('x',fontsize=16)
+        pyplot.subplots_adjust(left=0.2)
+        pyplot.subplots_adjust(bottom=0.15)
+        pyplot.subplots_adjust(top=0.95)
+        #  pyplot.show()
+        fig.savefig("analytical_plots/fig_Sod_LW_it"+str(itCount)+".png", dpi=300)
 
 
