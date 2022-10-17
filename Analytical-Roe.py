@@ -13,13 +13,13 @@
 #import os, sys
 import numpy as np
 from numpy import *
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pyplot
 
 from matplotlib import rc
 rc('font', family='serif')
 rc('lines', linewidth=1.5)
 rc('font', size=14)
-#plt.rc('legend',**{'fontsize':11})
+#pyplot.rc('legend',**{'fontsize':11})
 
 ######################################################################
 #             Solving 1-D Euler system of equations
@@ -96,7 +96,7 @@ def flux_roe(q,dx,gamma,a,nx):
     htot = gamma/(gamma-1)*p/r+0.5*u**2
     
     # Initialize Roe flux
-    Phi=np.zeros((3,nx-1))
+    Phi=np.np.zeros((3,nx-1))
     
     for j in range (0,nx-1):
     
@@ -146,158 +146,168 @@ def flux_roe(q,dx,gamma,a,nx):
     
     return (dF)
 
+
+
+#Fill out the constants and parameters
+
+#Constants
+COURANT_NUM    = 0.50               # Courant Number - CFL
+IC = 1 # 6 IC cases are available
+
 # Parameters
-CFL    = 0.50               # Courant Number
-gamma  = 1.4                # Ratio of specific heats
-ncells = 400                # Number of cells
-x_ini =0.; x_fin = 1.       # Limits of computational domain
-dx = (x_fin-x_ini)/ncells   # Step size
-nx = ncells+1               # Number of points
-x = np.linspace(x_ini+dx/2.,x_fin,nx) # Mesh
+specificHeatsRatio  = 1.4                # Ratio of specific heats - gamma
+numCells = 400                # Number of cells - ncells
+x_lower =0.; x_upper = 1.       # Limits of computational domain -start and final
+step = (x_upper-x_lower)/numCells   # Step size - dx
+pointCount = numCells+1               # Number of points - nx
+x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh
 
 # Build IC
-r0 = zeros(nx)
-u0 = zeros(nx)
-p0 = zeros(nx)
-halfcells = int(ncells/2)
+r_vector = np.zeros(pointCount)
+u_vector = np.zeros(pointCount)
+p_vector = np.zeros(pointCount)
+splitCells = int(numCells/2)
 
-IC = 1 # 6 IC cases are available
+
 if IC == 1:
     print ("Configuration 1, Sod's Problem")
-    p0[:halfcells] = 1.0  ; p0[halfcells:] = 0.1;
-    u0[:halfcells] = 0.0  ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 1.0  ; r0[halfcells:] = 0.125;
-    tEnd = 0.20;
+    p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
+    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
+    timeEnd = 0.20
 elif IC== 2:
     print ("Configuration 2, Left Expansion and right strong shock")
-    p0[:halfcells] = 1000.; p0[halfcells:] = 0.1;
-    u0[:halfcells] = 0.0  ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 3.0  ; r0[halfcells:] = 0.2;
-    tEnd = 0.01;
+    p_vector[:splitCells] = 1000.; p_vector[splitCells:] = 0.1
+    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 3.0  ; r_vector[splitCells:] = 0.2
+    timeEnd = 0.01
 elif IC == 3:
     print ("Configuration 3, Right Expansion and left strong shock")
-    p0[:halfcells] = 7.   ; p0[halfcells:] = 10.;
-    u0[:halfcells] = 0.0  ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 1.0  ; r0[halfcells:] = 1.0;
-    tEnd = 0.10;
+    p_vector[:splitCells] = 7.   ; p_vector[splitCells:] = 10.
+    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 1.0
+    timeEnd = 0.10
 elif IC == 4:
     print ("Configuration 4, Shocktube problem of G.A. Sod, JCP 27:1, 1978")
-    p0[:halfcells] = 1.0  ; p0[halfcells:] = 0.1;
-    u0[:halfcells] = 0.75 ; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 1.0  ; r0[halfcells:] = 0.125;
-    tEnd = 0.17;
+    p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
+    u_vector[:splitCells] = 0.75 ; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
+    timeEnd = 0.17
 elif IC == 5:
     print ("Configuration 5, Lax test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
-    p0[:halfcells] = 3.528; p0[halfcells:] = 0.571;
-    u0[:halfcells] = 0.698; u0[halfcells:] = 0.0;
-    r0[:halfcells] = 0.445; r0[halfcells:] = 0.5;
-    tEnd = 0.15;
+    p_vector[:splitCells] = 3.528; p_vector[splitCells:] = 0.571
+    u_vector[:splitCells] = 0.698; u_vector[splitCells:] = 0.0
+    r_vector[:splitCells] = 0.445; r_vector[splitCells:] = 0.5
+    timeEnd = 0.15
 elif IC == 6:
     print ("Configuration 6, Mach = 3 test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
-    p0[:halfcells] = 10.33; p0[halfcells:] = 1.0;
-    u0[:halfcells] = 0.92 ; u0[halfcells:] = 3.55;
-    r0[:halfcells] = 3.857; r0[halfcells:] = 1.0;
-    tEnd = 0.09;
+    p_vector[:splitCells] = 10.33; p_vector[splitCells:] = 1.0
+    u_vector[:splitCells] = 0.92 ; u_vector[splitCells:] = 3.55
+    r_vector[:splitCells] = 3.857; r_vector[splitCells:] = 1.0
+    timeEnd = 0.09
 
-E0 = p0/((gamma-1.)*r0)+0.5*u0**2 # Total Energy density
-a0 = sqrt(gamma*p0/r0)            # Speed of sound
-q  = np.array([r0,r0*u0,r0*E0])   # Vector of conserved variables
+
+
+E0 = p_vector/((specificHeatsRatio-1.)*r_vector)+0.5*u_vector**2 # Total Energy density
+a0 = sqrt(specificHeatsRatio*p_vector/r_vector)            # Speed of sound
+q  = np.array([r_vector,r_vector*u_vector,r_vector*E0])   # Vector of conserved variables
 
 if (False):
-    fig = plt.subplots()
-    ax1 = plt.subplot(4, 1, 1)
-    #plt.title('Lax-Wendroff scheme')
-    plt.plot(x, r0, 'k-')
-    plt.ylabel('$rho$',fontsize=18)
-    plt.tick_params(axis='x',bottom=False,labelbottom=False)
-    plt.grid(True)
+    fig = pyplot.subplots()
+    ax1 = pyplot.subplot(4, 1, 1)
+    #pyplot.title('Lax-Wendroff scheme')
+    pyplot.plot(x_domain, r_vector, 'k-')
+    pyplot.ylabel('$rho$',fontsize=18)
+    pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+    pyplot.grid(True)
     
-    ax2 = plt.subplot(4, 1, 2)
-    plt.plot(x, u0, 'r-')
-    plt.ylabel('$U$',fontsize=18)
-    plt.tick_params(axis='x',bottom=False,labelbottom=False)
-    plt.grid(True)
+    ax2 = pyplot.subplot(4, 1, 2)
+    pyplot.plot(x_domain, u_vector, 'r-')
+    pyplot.ylabel('$U$',fontsize=18)
+    pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+    pyplot.grid(True)
 
-    ax3 = plt.subplot(4, 1, 3)
-    plt.plot(x, p0, 'b-')
-    plt.ylabel('$P$',fontsize=18)
-    plt.tick_params(axis='x',bottom=False,labelbottom=False)
-    plt.grid(True)
+    ax3 = pyplot.subplot(4, 1, 3)
+    pyplot.plot(x_domain, p_vector, 'b-')
+    pyplot.ylabel('$P$',fontsize=18)
+    pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+    pyplot.grid(True)
     
-    ax4 = plt.subplot(4, 1, 4)
-    plt.plot(x, E0, 'g-')
-    plt.ylabel('$E$',fontsize=18)
-    plt.grid(True)
-    plt.xlim(x_ini,x_fin)
-    plt.xlabel('x',fontsize=18)
-    plt.subplots_adjust(left=0.2)
-    plt.subplots_adjust(bottom=0.15)
-    plt.subplots_adjust(top=0.95)
+    ax4 = pyplot.subplot(4, 1, 4)
+    pyplot.plot(x_domain, E0, 'g-')
+    pyplot.ylabel('$E$',fontsize=18)
+    pyplot.grid(True)
+    pyplot.xlim(x_lower,x_upper)
+    pyplot.xlabel('x',fontsize=18)
+    pyplot.subplots_adjust(left=0.2)
+    pyplot.subplots_adjust(bottom=0.15)
+    pyplot.subplots_adjust(top=0.95)
     
-    plt.show()
+    pyplot.show()
 
 # Solver loop
-t  = 0
-it = 0
+tCur  = 0
+itCount = 0
 a  = a0
-dt=CFL*dx/max(abs(u0)+a0)         # Using the system's largest eigenvalue
+deltaTime=COURANT_NUM*step/max(abs(u_vector)+a0)         # Using the system's largest eigenvalue
 
-while t < tEnd:
+while tCur < timeEnd:
 
     q0 = q.copy();
-    dF = flux_roe(q0,dx,gamma,a,nx);
+    dF = flux_roe(q0,step,specificHeatsRatio,a,pointCount);
     
-    q[:,1:-2] = q0[:,1:-2]-dt/dx*dF;
+    q[:,1:-2] = q0[:,1:-2]-deltaTime/step*dF;
     q[:,0]=q0[:,0]; q[:,-1]=q0[:,-1]; # Dirichlet BCs
     
     # Compute primary variables
     rho=q[0];
     u=q[1]/rho;
     E=q[2]/rho;
-    p=(gamma-1.)*rho*(E-0.5*u**2);
-    a=sqrt(gamma*p/rho);
+    p=(specificHeatsRatio-1.)*rho*(E-0.5*u**2);
+    a=sqrt(specificHeatsRatio*p/rho);
     if min(p)<0: print ('negative pressure found!')
     
     # Update/correct time step
-    dt=CFL*dx/max(abs(u)+a);
+    deltaTime=COURANT_NUM*step/max(abs(u)+a);
     
     # Update time and iteration counter
-    t=t+dt; it=it+1;
+    tCur=tCur+deltaTime
+    itCount+=1
         
-    # Plot solution
-    if it%2 == 0:
-        fig,axes = plt.subplots(nrows=4, ncols=1, num=1, figsize=(10, 8), clear=True)
+    # Using pyplot plot
+    if itCount%2 == 0:
+        fig,axes = pyplot.subplots(nrows=4, ncols=1, num=1, figsize=(10, 8), clear=True)
         fig.suptitle('Roe Scheme')
 
-        plt.subplot(4, 1, 1)
-        #plt.title('Roe scheme')
-        plt.plot(x, rho, 'k-')
-        plt.ylabel('$rho$',fontsize=16)
-        plt.tick_params(axis='x',bottom=False,labelbottom=False)
-        plt.grid(True)
+        pyplot.subplot(4, 1, 1)
+        #pyplot.title('Roe scheme')
+        pyplot.plot(x_domain, rho, 'k-')
+        pyplot.ylabel('$rho$',fontsize=16)
+        pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+        pyplot.grid(True)
 
-        plt.subplot(4, 1, 2)
-        plt.plot(x, u, 'r-')
-        plt.ylabel('$U$',fontsize=16)
-        plt.tick_params(axis='x',bottom=False,labelbottom=False)
-        plt.grid(True)
+        pyplot.subplot(4, 1, 2)
+        pyplot.plot(x_domain, u, 'r-')
+        pyplot.ylabel('$U$',fontsize=16)
+        pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+        pyplot.grid(True)
 
-        plt.subplot(4, 1, 3)
-        plt.plot(x, p, 'b-')
-        plt.ylabel('$p$',fontsize=16)
-        plt.tick_params(axis='x',bottom=False,labelbottom=False)
-        plt.grid(True)
+        pyplot.subplot(4, 1, 3)
+        pyplot.plot(x_domain, p, 'b-')
+        pyplot.ylabel('$p$',fontsize=16)
+        pyplot.tick_params(axis='x',bottom=False,labelbottom=False)
+        pyplot.grid(True)
     
-        plt.subplot(4, 1, 4)
-        plt.plot(x, E, 'g-')
-        plt.ylabel('$E$',fontsize=16)
-        plt.grid(True)
-        plt.xlim(x_ini,x_fin)
-        plt.xlabel('x',fontsize=16)
-        plt.subplots_adjust(left=0.2)
-        plt.subplots_adjust(bottom=0.15)
-        plt.subplots_adjust(top=0.95)
-        #plt.show()
+        pyplot.subplot(4, 1, 4)
+        pyplot.plot(x_domain, E, 'g-')
+        pyplot.ylabel('$E$',fontsize=16)
+        pyplot.grid(True)
+        pyplot.xlim(x_lower,x_upper)
+        pyplot.xlabel('x',fontsize=16)
+        pyplot.subplots_adjust(left=0.2)
+        pyplot.subplots_adjust(bottom=0.15)
+        pyplot.subplots_adjust(top=0.95)
+        #pyplot.show()
         import os
         os.makedirs('roe_scheme_results',exist_ok=True)
-        fig.savefig(f"roe_scheme_results/fig_Sod_Roe_it_{it:04d}.png", dpi=300)
+        fig.savefig(f"roe_scheme_results/fig_Sod_Roe_it_{itCount:04d}.png", dpi=300)

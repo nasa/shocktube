@@ -53,6 +53,7 @@ rc('font', size=14)
 #
 ######################################################################
 
+#Fill out the constants and parameters
 
 #Constants
 COURANT_NUM    = 0.50               # Courant Number - CFL
@@ -109,6 +110,7 @@ elif IC == 6:
     r_vector[:splitCells] = 3.857; r_vector[splitCells:] = 1.0
     timeEnd = 0.09
 
+#Calculate values with newly populated vectors
 E0 = p_vector/((specificHeatsRatio-1.)*r_vector)+0.5*u_vector**2 # Total Energy density - E0
 a = sqrt(specificHeatsRatio*p_vector/r_vector)            # Speed of sound
 q  = np.array([r_vector,r_vector*u_vector,r_vector*E0])   # Vector of conserved variables
