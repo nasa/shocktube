@@ -1,14 +1,6 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
-################################################################
-#
-# Class 06: 1-D Euler system of equations
-# Solve equation using the Lax-Wendroff scheme
-# Author: P. S. Volpiani
-# Date: 01/08/2020
-#
-################################################################
 
 import os, sys
 import numpy as np
@@ -22,36 +14,6 @@ rc('lines', linewidth=1.5)
 rc('font', size=14)
 #pyplot.rc('legend',**{'fontsize':11})
 
-######################################################################
-#             Solving 1-D Euler system of equations
-#                 using the Lax-Wendroff scheme
-#
-#             dq_i/dt + df_i/dx = 0, for x \in [a,b]
-#
-# This code solves the Sod's shock tube problem (IC=1)
-#
-# t=0                                 t=tEnd
-# Density                             Density
-#   ****************|                 *********\
-#                   |                           \
-#                   |                            \
-#                   |                             ****|
-#                   |                                 |
-#                   |                                 ****|
-#                   ***************                       ***********
-#
-# Domain cells (I{i}) reference:
-#
-#                |           |   u(i)    |           |
-#                |  u(i-1)   |___________|           |
-#                |___________|           |   u(i+1)  |
-#                |           |           |___________|
-#             ...|-----0-----|-----0-----|-----0-----|...
-#                |    i-1    |     i     |    i+1    |
-#                |-         +|-         +|-         +|
-#              i-3/2       i-1/2       i+1/2       i+3/2
-#
-######################################################################
 
 
 def buildIC(pointCount, numCells):

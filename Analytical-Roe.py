@@ -1,14 +1,6 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
-################################################################
-#
-# Class 07: 1-D Euler system of equations
-# Solve equation using the Roe scheme
-# Author: P. S. Volpiani
-# Date: 01/08/2020
-#
-################################################################
 
 #import os, sys
 import numpy as np
@@ -19,38 +11,7 @@ from matplotlib import rc
 rc('font', family='serif')
 rc('lines', linewidth=1.5)
 rc('font', size=14)
-#pyplot.rc('legend',**{'fontsize':11})
 
-######################################################################
-#             Solving 1-D Euler system of equations
-#                     using the Roe scheme
-#
-#             dq_i/dt + df_i/dx = 0, for x \in [a,b]
-#
-# This code solves the Sod's shock tube problem (IC=1)
-#
-# t=0                                 t=tEnd
-# Density                             Density
-#   ****************|                 *********\
-#                   |                           \
-#                   |                            \
-#                   |                             ****|
-#                   |                                 |
-#                   |                                 ****|
-#                   ***************                       ***********
-#
-# Domain cells (I{i}) reference:
-#
-#                |           |   u(i)    |           |
-#                |  u(i-1)   |___________|           |
-#                |___________|           |   u(i+1)  |
-#                |           |           |___________|
-#             ...|-----0-----|-----0-----|-----0-----|...
-#                |    i-1    |     i     |    i+1    |
-#                |-         +|-         +|-         +|
-#              i-3/2       i-1/2       i+1/2       i+3/2
-#
-######################################################################
 
 
 #def func_cons2prim(q,gamma):
@@ -89,10 +50,10 @@ def func_flux(q,gamma):
 def flux_roe(q,dx,gamma,a,nx):
 
     # Compute primitive variables and enthalpy
-    r=q[0];
-    u=q[1]/r;
-    E=q[2]/r;
-    p=(gamma-1.)*r*(E-0.5*u**2);
+    r=q[0]
+    u=q[1]/r
+    E=q[2]/r
+    p=(gamma-1.)*r*(E-0.5*u**2)
     htot = gamma/(gamma-1)*p/r+0.5*u**2
     
     # Initialize Roe flux
@@ -108,11 +69,11 @@ def flux_roe(q,dx,gamma,a,nx):
         amoy=sqrt((gamma-1.0)*(hmoy-0.5*umoy*umoy));  # {hat a}_{j+1/2}
         
         # Auxiliary variables used to compute P_{j+1/2}^{-1}
-        alph1=(gamma-1)*umoy*umoy/(2*amoy*amoy);
-        alph2=(gamma-1)/(amoy*amoy);
+        alph1=(gamma-1)*umoy*umoy/(2*amoy*amoy)
+        alph2=(gamma-1)/(amoy*amoy)
 
         # Compute vector (W_{j+1}-W_j)
-        wdif = q[:,j+1]-q[:,j];
+        wdif = q[:,j+1]-q[:,j]
         
         # Compute matrix P^{-1}_{j+1/2}
         Pinv = np.array([[0.5*(alph1+umoy/amoy), -0.5*(alph2*umoy+1/amoy),  alph2/2],
@@ -204,7 +165,7 @@ numCells = 400                # Number of cells - ncells
 x_lower =0.; x_upper = 1.       # Limits of computational domain -start and final
 step = (x_upper-x_lower)/numCells   # Step size - dx
 pointCount = numCells+1               # Number of points - nx
-x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh -x
+x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh - x
 
 #populate numpy arrays
 p_vector, u_vector, r_vector, timeEnd = buildIC(pointCount, numCells)
