@@ -192,13 +192,13 @@ def buildIC(pointCount, numCells):
     return p_vector, u_vector, r_vector, timeEnd
 
 
-#Fill out the constants and parameters
+#Fill out the constants and inputs
 
 #Constants
 COURANT_NUM    = 0.50               # Courant Number - CFL
 IC = 1 # 6 IC cases are available
 
-# Parameters
+# Inputs
 specificHeatsRatio  = 1.4                # Ratio of specific heats - gamma
 numCells = 400                # Number of cells - ncells
 x_lower =0.; x_upper = 1.       # Limits of computational domain -start and final
@@ -206,12 +206,12 @@ step = (x_upper-x_lower)/numCells   # Step size - dx
 pointCount = numCells+1               # Number of points - nx
 x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh -x
 
-#populate values
+#populate numpy arrays
 p_vector, u_vector, r_vector, timeEnd = buildIC(pointCount, numCells)
 
 #Calculate values with newly populated vectors
 E0 = p_vector/((specificHeatsRatio-1.)*r_vector)+0.5*u_vector**2 # Total Energy density
-a0 = sqrt(specificHeatsRatio*p_vector/r_vector)            # Speed of sound
+a = sqrt(specificHeatsRatio*p_vector/r_vector)            # Speed of sound
 q  = np.array([r_vector,r_vector*u_vector,r_vector*E0])   # Vector of conserved variables
 
 if (False):
@@ -247,30 +247,29 @@ if (False):
     
     pyplot.show()
 
-# Solver loop
+# Loop from 0 to timeEnd
 tCur  = 0
 itCount = 0
-a  = a0
-deltaTime=COURANT_NUM*step/max(abs(u_vector)+a0)         # Using the system's largest eigenvalue - dt
+deltaTime=COURANT_NUM*step/max(abs(u_vector)+a)         # Using the system's largest eigenvalue - dt
 
 while tCur < timeEnd:
 
-    q0 = q.copy();
-    dF = flux_roe(q0,step,specificHeatsRatio,a,pointCount);
+    q0 = q.copy()
+    dF = flux_roe(q0,step,specificHeatsRatio,a,pointCount)
     
-    q[:,1:-2] = q0[:,1:-2]-deltaTime/step*dF;
+    q[:,1:-2] = q0[:,1:-2]-deltaTime/step*dF
     q[:,0]=q0[:,0]; q[:,-1]=q0[:,-1]; # Dirichlet BCs
     
     # Compute primary variables
-    rho=q[0];
-    u=q[1]/rho;
-    E=q[2]/rho;
-    p=(specificHeatsRatio-1.)*rho*(E-0.5*u**2);
-    a=sqrt(specificHeatsRatio*p/rho);
+    rho=q[0]
+    u=q[1]/rho
+    E=q[2]/rho
+    p=(specificHeatsRatio-1.)*rho*(E-0.5*u**2)
+    a=sqrt(specificHeatsRatio*p/rho)
     if min(p)<0: print ('negative pressure found!')
     
     # Update/correct time step
-    deltaTime=COURANT_NUM*step/max(abs(u)+a);
+    deltaTime=COURANT_NUM*step/max(abs(u)+a)
     
     # Update time and iteration counter
     tCur=tCur+deltaTime

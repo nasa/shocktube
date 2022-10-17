@@ -99,13 +99,13 @@ def buildIC(pointCount, numCells):
         timeEnd = 0.09
     return p_vector, u_vector, r_vector, timeEnd
 
-#Fill out the constants and parameters
+#Fill out the constants and inputs
 
 #Constants
 COURANT_NUM    = 0.50               # Courant Number - CFL
 IC = 1 # 6 IC cases are available
 
-# Parameters
+# Inputs
 specificHeatsRatio  = 1.4                # Ratio of specific heats - gamma
 numCells = 400                # Number of cells - ncells
 x_lower =0.; x_upper = 1.       # Limits of computational domain - start and final bounds
@@ -113,7 +113,7 @@ step = (x_upper-x_lower)/numCells   # Step size - dx
 pointCount = numCells+1               # Number of points - nx
 x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh - x
 
-#populate values
+#populate numpy arrays
 p_vector, u_vector, r_vector, timeEnd = buildIC(pointCount, numCells)
 
 #Calculate values with newly populated vectors
@@ -154,7 +154,7 @@ if (False):
     
     pyplot.show()
 
-# Solver loop
+# Loop from 0 to timeEnd
 tCur  = 0 #t
 itCount = 0
 deltaTime=COURANT_NUM*step/max(abs(u_vector)+a)  # Using the system's largest eigenvalue - dt
