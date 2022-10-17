@@ -53,6 +53,52 @@ rc('font', size=14)
 #
 ######################################################################
 
+
+def buildIC(pointCount, numCells):
+    # Build IC
+    r_vector = np.zeros(pointCount)
+    u_vector = np.zeros(pointCount)
+    p_vector = np.zeros(pointCount)
+    splitCells = int(numCells/2)
+
+    if IC == 1:
+        print ("Configuration 1, Sod's Problem")
+        p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
+        u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+        r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
+        timeEnd = 0.20; #tEnd
+    elif IC== 2:
+        print ("Configuration 2, Left Expansion and right strong shock")
+        p_vector[:splitCells] = 1000.; p_vector[splitCells:] = 0.1
+        u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+        r_vector[:splitCells] = 3.0  ; r_vector[splitCells:] = 0.2
+        timeEnd = 0.01
+    elif IC == 3:
+        print ("Configuration 3, Right Expansion and left strong shock")
+        p_vector[:splitCells] = 7.   ; p_vector[splitCells:] = 10.
+        u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
+        r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 1.0
+        timeEnd = 0.10
+    elif IC == 4:
+        print ("Configuration 4, Shocktube problem of G.A. Sod, JCP 27:1, 1978")
+        p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
+        u_vector[:splitCells] = 0.75 ; u_vector[splitCells:] = 0.0
+        r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
+        timeEnd = 0.17
+    elif IC == 5:
+        print ("Configuration 5, Lax test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
+        p_vector[:splitCells] = 3.528; p_vector[splitCells:] = 0.571
+        u_vector[:splitCells] = 0.698; u_vector[splitCells:] = 0.0
+        r_vector[:splitCells] = 0.445; r_vector[splitCells:] = 0.5
+        timeEnd = 0.15
+    elif IC == 6:
+        print ("Configuration 6, Mach = 3 test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
+        p_vector[:splitCells] = 10.33; p_vector[splitCells:] = 1.0
+        u_vector[:splitCells] = 0.92 ; u_vector[splitCells:] = 3.55
+        r_vector[:splitCells] = 3.857; r_vector[splitCells:] = 1.0
+        timeEnd = 0.09
+    return p_vector, u_vector, r_vector, timeEnd
+
 #Fill out the constants and parameters
 
 #Constants
@@ -65,50 +111,10 @@ numCells = 400                # Number of cells - ncells
 x_lower =0.; x_upper = 1.       # Limits of computational domain - start and final bounds
 step = (x_upper-x_lower)/numCells   # Step size - dx
 pointCount = numCells+1               # Number of points - nx
-x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh
+x_domain = np.linspace(x_lower+step/2.,x_upper,pointCount) # Mesh - x
 
-# Build IC
-r_vector = np.zeros(pointCount)
-u_vector = np.zeros(pointCount)
-p_vector = np.zeros(pointCount)
-splitCells = int(numCells/2)
-
-if IC == 1:
-    print ("Configuration 1, Sod's Problem")
-    p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
-    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
-    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
-    timeEnd = 0.20; #tEnd
-elif IC== 2:
-    print ("Configuration 2, Left Expansion and right strong shock")
-    p_vector[:splitCells] = 1000.; p_vector[splitCells:] = 0.1
-    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
-    r_vector[:splitCells] = 3.0  ; r_vector[splitCells:] = 0.2
-    timeEnd = 0.01
-elif IC == 3:
-    print ("Configuration 3, Right Expansion and left strong shock")
-    p_vector[:splitCells] = 7.   ; p_vector[splitCells:] = 10.
-    u_vector[:splitCells] = 0.0  ; u_vector[splitCells:] = 0.0
-    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 1.0
-    timeEnd = 0.10
-elif IC == 4:
-    print ("Configuration 4, Shocktube problem of G.A. Sod, JCP 27:1, 1978")
-    p_vector[:splitCells] = 1.0  ; p_vector[splitCells:] = 0.1
-    u_vector[:splitCells] = 0.75 ; u_vector[splitCells:] = 0.0
-    r_vector[:splitCells] = 1.0  ; r_vector[splitCells:] = 0.125
-    timeEnd = 0.17
-elif IC == 5:
-    print ("Configuration 5, Lax test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
-    p_vector[:splitCells] = 3.528; p_vector[splitCells:] = 0.571
-    u_vector[:splitCells] = 0.698; u_vector[splitCells:] = 0.0
-    r_vector[:splitCells] = 0.445; r_vector[splitCells:] = 0.5
-    timeEnd = 0.15
-elif IC == 6:
-    print ("Configuration 6, Mach = 3 test case: M. Arora and P.L. Roe: JCP 132:3-11, 1997")
-    p_vector[:splitCells] = 10.33; p_vector[splitCells:] = 1.0
-    u_vector[:splitCells] = 0.92 ; u_vector[splitCells:] = 3.55
-    r_vector[:splitCells] = 3.857; r_vector[splitCells:] = 1.0
-    timeEnd = 0.09
+#populate values
+p_vector, u_vector, r_vector, timeEnd = buildIC(pointCount, numCells)
 
 #Calculate values with newly populated vectors
 E0 = p_vector/((specificHeatsRatio-1.)*r_vector)+0.5*u_vector**2 # Total Energy density - E0
