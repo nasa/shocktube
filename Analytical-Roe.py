@@ -234,7 +234,7 @@ if (False):
     plt.subplots_adjust(bottom=0.15)
     plt.subplots_adjust(top=0.95)
     
-    plt.show()
+    # plt.show()
 
 # Solver loop
 t  = 0
